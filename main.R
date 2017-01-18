@@ -1,6 +1,9 @@
 ## Team Script0rs - Inge & David 17 January 2017
 ## Lesson 08 - Main
 
+library(raster)
+library(sp)
+
 ## Load necessary bands and VCF data
 load("data/GewataB1.rda")
 load("data/GewataB2.rda")
@@ -15,9 +18,24 @@ RelationshipGewata <- brick(GewataB1, GewataB4, GewataB7, vcfGewata)
 pairs(RelationshipGewata)
 
 ## Create Gewata DataFrame
-Gewata <- brick(GewataB1, GewataB2, GewataB3, GewataB4, GewataB5, GewataB7, vcfGewata)
-Gewata <- calc(Gewata, fun=function(x) x/10000)
+Gewatabrick <- brick(GewataB1, GewataB2, GewataB3, GewataB4, GewataB5, GewataB7)
+Gewatabrick <- calc(Gewatabrick, fun=function(x) x/10000)
+
+## Extract NA values from vcf data
+vcfGewata[vcfGewata > 100] <- NA
+Gewata <- addLayer(Gewatabrick, vcfGewata)
 names(Gewata) <- c("Band1", "Band2", "Band3", "Band4", "Band5", "Band7", "VCF")
 Gewatadf <- as.data.frame(getValues(Gewata))
 
-                            
+## Create model
+model <- lm(VCF ~ Band1 + Band2 + Band3 + Band4 + Band5 + Band7, data = Gewatadf)                           
+summary(model)
+
+## Create predicted tree cover raster
+predictedTreeCover <- predict(Gewata, model = model, na.rm=TRUE)
+predictedTreeCover[predictedTreeCover < 0] <- NA
+
+## plot predicted tree cover raster with original VCF raster
+opar <- par(mfrow=c(1,2))
+plot(predictedTreeCover)
+plot(vcfGewata)
