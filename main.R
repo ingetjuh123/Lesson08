@@ -3,6 +3,7 @@
 
 library(raster)
 library(sp)
+library(hydroGOF)
 
 ## Load necessary bands and VCF data
 load("data/GewataB1.rda")
@@ -12,6 +13,7 @@ load("data/GewataB4.rda")
 load("data/GewataB5.rda")
 load("data/GewataB7.rda")
 load("data/vcfGewata.rda")
+load("data/trainingPoly.rda")
 
 ## Produce plot demonstrating relationship between Landsat and VCF
 RelationshipGewata <- brick(GewataB1, GewataB4, GewataB7, vcfGewata)
@@ -39,3 +41,8 @@ predictedTreeCover[predictedTreeCover < 0] <- NA
 opar <- par(mfrow=c(1,2))
 plot(predictedTreeCover)
 plot(vcfGewata)
+
+## Use RMSE function
+rmse(predictedTreeCover[], vcfGewata[], na.rm=TRUE)
+
+## 
